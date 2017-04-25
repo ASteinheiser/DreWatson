@@ -14,17 +14,17 @@ var app = express()
 app.use(fileUpload())
 app.set('port', process.env.PORT || 3000)
 
-app.get('/version', function(request, response) {
-  response.send(package.version)
-})
-
-app.get('/', function(request, response) {
-  response.send('Hello! You can GET /version or POST an image to /recognition...')
-})
-
 app.listen(app.get('port'), () => {
  console.log('App is running at http://localhost:%d in %s mode', app.get('port'), app.get('env'))
  console.log('Press CTRL-C to stop\n')
+})
+
+app.get('/', function(request, response) {
+  response.status(200).send('Hello! You can GET /version or POST an image to /recognition...')
+})
+
+app.get('/version', function(request, response) {
+  response.status(200).send(package.version)
 })
 
 app.post('/recognition', function(request, response) {
@@ -36,8 +36,8 @@ app.post('/recognition', function(request, response) {
   }
 
   visual_recognition.classify(params, function(err, res) {
-    if (err) return response.send(err)
-    response.send(JSON.stringify(res, null, 2))
+    if (err) return response.status(500).send(err)
+    response.status(200).send(res.images[0].classifiers[0].classes[0])
   })
 })
 
