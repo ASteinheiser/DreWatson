@@ -18,6 +18,10 @@ app.get('/version', function(request, response) {
   response.send(package.version)
 })
 
+app.get('/', function(request, response) {
+  response.send('Hello! You can GET /version or POST an image to /recognition...')
+})
+
 app.listen(app.get('port'), () => {
  console.log('App is running at http://localhost:%d in %s mode', app.get('port'), app.get('env'))
  console.log('Press CTRL-C to stop\n')
