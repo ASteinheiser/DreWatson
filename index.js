@@ -1,5 +1,7 @@
+var bodyParser = require('body-parser')
 var express = require('express')
-var fileUpload = require('express-fileupload')
+var fs = require('fs')
+var sharp = require('sharp')
 var VisualRecognitionV3 = require('watson-developer-cloud').VisualRecognitionV3
 
 var package = require('./package')
@@ -11,7 +13,7 @@ var visual_recognition = new VisualRecognitionV3({
 })
 
 var app = express()
-app.use(fileUpload())
+app.use(bodyParser.json({limit: '50mb'}))
 app.set('port', process.env.PORT || 3000)
 
 app.listen(app.get('port'), () => {
@@ -28,17 +30,22 @@ app.get('/version', function(request, response) {
 })
 
 app.post('/recognition', function(request, response) {
-  if (!request.files) return response.status(400).send('No files were uploaded...')
+  if (!request.body.image) return response.status(400).send('No image specified...')
 
-  var params = {
-    images_file: request.files.image.data,
-    classifier_ids: ["hue_1859332055", "default"]
-  }
+  sharp(new Buffer(request.body.image, 'base64'))
+    .resize(750,1000)
+    .toFile('image-to-send.jpg', function(err, info) {
 
-  visual_recognition.classify(params, function(err, res) {
-    if (err) return response.status(500).send(err)
-    response.status(200).send(res.images[0].classifiers[0].classes[0])
-  })
+      var params = {
+        images_file: fs.createReadStream('image-to-send.jpg'),
+        classifier_ids: ["hue_1859332055", "default"]
+      }
+
+      visual_recognition.classify(params, function(err, res) {
+        if (err) return response.status(500).send(err)
+        response.status(200).send(res.images[0].classifiers[0].classes[0])
+      })
+    })
 })
 
 module.exports = app
