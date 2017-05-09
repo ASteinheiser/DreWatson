@@ -1,7 +1,5 @@
-var bodyParser = require('body-parser')
 var express = require('express')
-var fs = require('fs')
-var sharp = require('sharp')
+var fileUpload = require('express-fileupload')
 var VisualRecognitionV3 = require('watson-developer-cloud').VisualRecognitionV3
 
 var package = require('./package')
@@ -13,12 +11,12 @@ var visual_recognition = new VisualRecognitionV3({
 })
 
 var app = express()
-app.use(bodyParser.json({limit: '50mb'}))
+app.use(fileUpload())
 app.set('port', process.env.PORT || 3000)
 
 app.listen(app.get('port'), () => {
- console.log('App is running at http://localhost:%d in %s mode', app.get('port'), app.get('env'))
- console.log('Press CTRL-C to stop\n')
+  console.log('App is running at http://localhost:%d in %s mode', app.get('port'), app.get('env'))
+  console.log('Press CTRL-C to stop\n')
 })
 
 app.get('/', function(request, response) {
@@ -30,22 +28,17 @@ app.get('/version', function(request, response) {
 })
 
 app.post('/recognition', function(request, response) {
-  if (!request.body.image) return response.status(400).send('No image specified...')
+  if (!request.files) return response.status(400).send('No files were uploaded...')
 
-  sharp(new Buffer(request.body.image, 'base64'))
-    .resize(750,1000)
-    .toFile('image-to-send.jpg', function(err, info) {
-      var params = {
-        images_file: fs.readFileSync('image-to-send.jpg'),
-        classifier_ids: ["hue_1859332055", "default"]
-      }
-      console.log(params)
-      visual_recognition.classify(params, function(err, res) {
-        console.log(err)
-        if (err) return response.status(500).send(err)
-        response.status(200).send(res.images[0].classifiers[0].classes[0])
-      })
-    })
+  var params = {
+    images_file: request.files.image.data,
+    classifier_ids: ["hue_1859332055", "default"]
+  }
+
+  visual_recognition.classify(params, function(err, res) {
+    if (err) return response.status(500).send(err)
+    response.status(200).send(res.images[0].classifiers[0].classes[0])
+  })
 })
 
 module.exports = app
