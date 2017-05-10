@@ -1,6 +1,5 @@
 var bodyParser = require('body-parser')
 var express = require('express')
-var fs = require('fs')
 var Jimp = require('jimp')
 var VisualRecognitionV3 = require('watson-developer-cloud').VisualRecognitionV3
 
