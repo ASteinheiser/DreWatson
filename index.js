@@ -1,6 +1,7 @@
 var bodyParser = require('body-parser')
 var express = require('express')
-var Jimp = require('jimp')
+var fs = require('fs')
+var sharp = require('sharp')
 var VisualRecognitionV3 = require('watson-developer-cloud').VisualRecognitionV3
 
 var package = require('./package')
@@ -31,21 +32,20 @@ app.get('/version', function(request, response) {
 app.post('/recognition', function(request, response) {
   if (!request.body.image) return response.status(400).send('No image specified...')
 
-  Jimp.read(new Buffer(request.body.image, 'base64'), function (err, image) {
-    image.resize(750,1000)
+  sharp(new Buffer(request.body.image, 'base64'))
+    .resize(750,1000)
+    .toFile('image.jpeg', function(err, info) {
 
-    var params = {
-      images_file: image.bitmap.data,
-      classifier_ids: ["hue_1859332055", "default"]
-    }
+      var params = {
+        images_file: fs.createReadStream('image.jpeg'),
+        classifier_ids: ["hue_1859332055", "default"]
+      }
 
-    console.log(params)
-
-    visual_recognition.classify(params, function(err, res) {
-      if (err) return response.status(500).send(err)
-      response.status(200).send(res)
+      visual_recognition.classify(params, function(err, res) {
+        if (err) return response.status(500).send(err)
+        response.status(200).send(res.images[0].classifiers[0].classes[0])
+      })
     })
-  })
 })
 
 module.exports = app
