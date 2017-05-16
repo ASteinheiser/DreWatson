@@ -2,6 +2,9 @@
 
 This is a simple micro-service that will perform image recognition using IBM Watson. It accepts a JSON object with one key(image) containing a base64 encoded image.
 
+## To-do
+- [ ] supply more training data to Watson
+
 ## Usage
 Clone and Run:
 ```
