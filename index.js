@@ -38,7 +38,7 @@ app.post('/recognition', function(request, response) {
 
       var params = {
         images_file: fs.createReadStream('image.jpeg'),
-        classifier_ids: ["hue_133120981", "default"]
+        classifier_ids: ["hue_1127503120", "default"]
       }
 
       visual_recognition.classify(params, function(err, res) {
